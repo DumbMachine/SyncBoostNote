@@ -68,35 +68,27 @@ def customshield(
 
 
 def markdown_writer(things, shields=True):
-    embels = {
-        'isStarred': customshield(label='Starred', message='⭐', color='blue'),
-        'isTrashed': customshield(label='Trashed', message='🚮', color='blue'),
-        'createdAt': customshield(label='createdAt', message='🚮', color='blue'),
-        # "2019-06-20T19:44:18.224Z"
-        'type': customshield(label='type', message='🚮', color='blue'),
-        'folder': customshield(label='folder', message='🚮', color='blue'),
-        'tags': customshield(label='Trashed', message='🚮', color='blue'),  # []
-
-    }
+    embels = ['isStarred', 'isTrashed',
+              'updatedAt', 'type', 'folder', 'tags']
     shelds = []
     if shields:
-        for key in list(embels.keys()):
+        for key in embels:
             x = None
             # print(things[key])
             # if key in ['isStarred', 'isTrashed']:
             if things[key]:
                 if key == 'isStarred':
-                    shelds.append(customshield(key, '_⭐_', color='black'))
+                    shelds.append(customshield(key, '⭐', color='black'))
 
                 if key == 'isTrashed':
-                    shelds.append(customshield(key, '_🗑_', color='black'))
+                    shelds.append(customshield(key, '🗑', color='black'))
 
-                elif key == 'createdAt':
+                elif key == 'updatedAt':
                     shelds.append(customshield(
-                        key, things[key].split(':')[0][:-3].replace('-', '/')))
+                        key, things[key].split(':')[0][:-3].replace('-', '/'), color='green'))
 
                 elif key in ['type', 'folder']:
-                    shelds.append(customshield(key, things[key]))
+                    shelds.append(customshield(key, things[key], color='blue'))
 
                 elif key == 'tags':
                     # OPTION 1: {tag| gay} {tag| notgay}
@@ -113,29 +105,40 @@ def markdown_writer(things, shields=True):
                     shelds.append(customshield(
                         label='tags', message='_'.join(tags), color='blueviolet', style='for-the-badge'))
 
+        file = open(os.path.join(BOOSTNOTE_NOTES_PATH,
+                                 f"{things['title']}.md"), 'w+')
+
+        for count, shield in enumerate(shelds):
+            if count != len(shelds) - 1:
+                file.write(shield)
+                file.write(' ')
             else:
-                    # tag
-                print(key)
+                file.write(shield)
+                file.write('\n')
 
-            print(
-                list(embels.keys()).index(key), things[key]
+        try:
+            file.write(things['content'])
 
-            )
-        # open(os.path.join(BOOSTNOTE_NOTES_PATH,
-        #                   f'{name}.md'), 'w+').write(content)
-    else:
-        pass
-        # open(os.path.join(BOOSTNOTE_NOTES_PATH,
-        #                   f'{name}.md'), 'w+').write(content)
+        except:
+            pass
+        try:
+            file.write(things['snippets'])
 
-        # boostnote_exists()
-        # boostnote_notes_exist()
-        # cson_reader()
-        # cson_reader()
-    return shelds
+        except:
+            pass
+
+# markdown_writer(
+#     cson_reader(get_notes()[4])
+# )
 
 
-cson_reader(get_notes()[4])
-markdown_writer(
-    cson_reader(get_notes()[4])
-)
+for note in get_notes():
+    markdown_writer(
+        cson_reader(
+            note
+        )
+    )
+# boostnote_exists()
+# boostnote_notes_exist()
+# cson_reader()
+# cson_reader()
