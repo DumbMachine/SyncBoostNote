@@ -81,6 +81,15 @@ def markdown_writer(things, location, shields=True,
                         'style': 'for-the-badge',
                         'option': 2
                     }):
+    '''
+    Used to write the markdown files
+    --------------------------------
+    PARAMETERS:
+    things: dict, cson_reader(fp):
+        The dict{} which contains shit that was read via the cson
+
+    '''
+
     embels = ['isStarred', 'isTrashed',
               'updatedAt', 'type', 'folder', 'tags']
     shelds = []
@@ -172,9 +181,17 @@ def get_changes():
     p = subprocess.Popen(
         git_commands.status, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     for line in p.stdout.readlines():
+        # Putting checks to see if any rendered file is deleted.
+        if '.md' in line.decode("utf-8"):
+            files.append(
+                line.decode(
+                    "utf-8").replace('modified:', '').strip().split('/')[-1]
+            )
+        # Checking if the diff file is .cson
         if '.cson' in line.decode("utf-8"):
             files.append(line.decode(
-                "utf-8").replace('modified:', '').strip())
+                "utf-8").replace('modified:', '').strip().split('/')[-1]
+            )
     retval = p.wait()
     return files
 
@@ -182,12 +199,34 @@ def get_changes():
 def update_changes():
     changed_files = get_changes()
     history_json = json.load(open(os.path.join(
-        BOOSTNOTE_SYNCNOTES_PATH, 'history.json'), 'r'))
+        BOOSTNOTE_PATH, 'history.json'), 'r'))
     for file in changed_files:
-        history_json[file]['updated'] = False
+        if '.md' in file:
+            # These files have been deleted or changed without telling us 😢😢😢
+            # Thus we will re render them
+            # 1. get the filename
+            history_json = json.load(open(os.path.join(
+                BOOSTNOTE_PATH, 'history.json'), 'r'))
+            for filename in history_json.keys():
+                if history_json[filename]['title'] == file.replace('.md', ''):
+                    # 2. Rendering the missing files.
+                    markdown_writer(
+                        cson_reader(
+                            os.path.join(
+                                BOOSTNOTE_PATH, 'notes', filename)
+                        ),
+                        location=BOOSTNOTE_SYNCNOTES_PATH,
+                        options={
+                            'style': 'for-the-badge',
+                            'option': 2
+                        }
+                    )
+            pass
+        else:
+            history_json[file]['updated'] = False
     json.dump(
         history_json,
-        open(os.path.join(BOOSTNOTE_SYNCNOTES_PATH, 'history.json'), 'w+')
+        open(os.path.join(BOOSTNOTE_PATH, 'history.json'), 'w+')
     )
 
 
@@ -204,13 +243,61 @@ def create_history():
     )
 
 
+def create_readme(config):
+
+    notes = get_notes()
+    # data = {}
+    file = open(os.path.join(config['BOOSTNOTE_PATH'], 'README.md'), 'w+')
+    file.write(
+        '''# SnycBoostNotes
+# This repo consists of two directories:
+```bash
+$ tree
+.
+├── boostnote.json
+├── history.json
+└── notes
+    ├── ....cson
+    ├── ....cson
+    └── syncboostnote
+        ├── ....md
+        ├── ....md
+```
+- Directory `base`:
+  - boostnote.json ``Created by boostnote``
+  - history.json ``Created by SyncBoostnote``
+  - Directory `notes`:
+    - Raw `.cson` files used by BoostNote.
+    - Directory `syncboostnote`:
+      - `.md` files used display content on Github.
+
+# Index:
+# This following are the documents:
+
+        '''
+    )
+    for note in get_notes():
+        data = cson_reader(note)
+        # data[note.split("/")[-1]] = {
+        #     'title': cson_reader(note)['title'],
+        #     'createdAt': cson_reader(note)['createdAt'],
+        #     'tags': cson_reader(note)['tags'],
+        # }
+        # ! Generate Github link here
+        file.write(
+            f"- [{data['title']}](https://github.com/DumbMachine/temp/blob/master/notes/syncboostnote/{data['title'].replace(' ','%20')}.md)")
+        file.write("\n")
+    # return data
+
+    awesome = 'https://img.shields.io/badge/made--with--%E2%99%A5--by-ProjectPy-blueviolet.svg'
+
+    file.write(
+        f"\n---\n<sub>This README was generated with ❤ by [SyncBoostnote](https://github.com/DumbMachine/SyncBoostNote) </sub>")
+
+
 def ultimate(config):
     if not os.path.isfile(os.path.join(config['BOOSTNOTE_PATH'], 'history.json')):
         # Create the History json again.
-        print(
-            os.path.join(config['BOOSTNOTE_PATH'], 'notes',
-                         'syncboostnote', 'history.json')
-        )
         create_history()
     if boostnote_exists(config['BOOSTNOTE_PATH']):
         print()
@@ -220,6 +307,7 @@ def ultimate(config):
             history_json = json.load(open(os.path.join(
                 BOOSTNOTE_PATH, 'history.json'), 'r'))
             for file in history_json.keys():
+                print(file, history_json[file]['updated'])
                 if not history_json[file]['updated']:
                     # If not updated, re render the file
                     markdown_writer(
@@ -233,7 +321,16 @@ def ultimate(config):
                             'option': 2
                         }
                     )
-                    # print(config)
+                    # Update the file render
+                    history_json[file]['updated'] = True
+
+        create_readme(config)
+        # Writing the changes of render.
+        json.dump(
+            history_json,
+            open(os.path.join(BOOSTNOTE_PATH, 'history.json'), 'w+')
+        )
+        print('[PASSED] README_GEN ')
 
     else:
         print("FUCKKK")
@@ -292,65 +389,3 @@ ultimate({
 
 # def create_readme():
 #     raise NotImplementedError
-
-def create_readme(config):
-
-    notes = get_notes()
-    # data = {}
-    file = open(os.path.join(config['BOOSTNOTE_PATH'], 'README.md'), 'w+')
-    file.write(
-        '''# SnycBoostNotes
-### This repo consists of two directories:
-```bash
-$ tree
-.
-├── boostnote.json
-├── history.json
-└── notes
-    ├── ....cson
-    ├── ....cson
-    └── syncboostnote
-        ├── ....md
-        ├── ....md
-```
-- Directory `base`:
-  - boostnote.json ``Created by boostnote``
-  - history.json ``Created by SyncBoostnote``
-  - Directory `notes`:
-    - Raw `.cson` files used by BoostNote.
-    - Directory `syncboostnote`:
-      - `.md` files used display content on Github.
-
-# Index:
-## This following are the documents:
-
-        '''
-    )
-    for note in get_notes():
-        data = cson_reader(note)
-        # data[note.split("/")[-1]] = {
-        #     'title': cson_reader(note)['title'],
-        #     'createdAt': cson_reader(note)['createdAt'],
-        #     'tags': cson_reader(note)['tags'],
-        # }
-        # ! Generate Github link here
-        file.write(
-            f"- [{data['title']}](./notes/syncboostnote/{data['title']})")
-        file.write("\n")
-    # return data
-
-    awesome = 'https://img.shields.io/badge/made--with--%E2%99%A5--by-ProjectPy-blueviolet.svg'
-
-    file.write(
-        f"\n---\n<sub>This README was generated with ❤ by [SyncBoostnote](https://github.com/DumbMachine/SyncBoostNote) </sub>")
-
-
-create_readme(
-    {
-        "BOOSTNOTE_PATH": os.path.join(home, 'Boostnote'),
-        "SHIELDS": True,
-        "SHIELDS_TYPE": "for-the-badge",
-        "FREQUENCY": "hourly",
-        "TIME": 11
-    }
-)
