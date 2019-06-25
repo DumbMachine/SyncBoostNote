@@ -394,8 +394,7 @@ $ tree
 
 # Index:
 # This following are the documents:
-
-        '''
+'''
     )
     for note in get_notes():
         data = cson_reader(note)
@@ -406,7 +405,8 @@ $ tree
         # }
         # ! Generate Github link here
         file.write(
-            f"- [{data['title']}](https://github.com/DumbMachine/temp/blob/master/notes/syncboostnote/{data['title'].replace(' ','%20')}.md)")
+            # https://github.com/DumbMachine/SyncBoostNoteExample/blob/master/notes/syncboostnote/Stolen%20Content.md
+            f"- [{data['title']}](https://github.com/DumbMachine/{repo_name()}/blob/master/notes/syncboostnote/{data['title'].replace(' ','%20')}.md)")
         file.write("\n")
     # return data
 
@@ -414,3 +414,14 @@ $ tree
 
     file.write(
         f"\n---\n<sub>This README was generated with ❤ by [SyncBoostnote](https://github.com/DumbMachine/SyncBoostNote) </sub>")
+
+
+def repo_name(
+    location=os.path.join(home, 'Boostnote', '.git', 'config')
+):
+    '''
+    Reads .git/config for information on the Github repo name
+    '''
+    for line in open(location, 'r').readlines():
+        if ".git" in line.strip().split('/')[-1]:
+            return(line.strip().split('/')[-1].strip(".git"))
