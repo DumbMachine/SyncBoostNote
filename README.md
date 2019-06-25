@@ -12,8 +12,9 @@ TODOS:
   - [ ] sort the names by name (alphabetically)
 - [ ] Sick boi.
 - [ ] Puts checks for, if the ".md" is somehow deleted, put it back in.
-- [ ] Brings in Opps.
-
+- [ ] Brings in oops.
+- [ ] 😢😢😢 Anything other than ``INTERACTIVE`` is executed twice, dunno why pliz halp.
+- [ ] Add sys.stdout for better information.
 ## Thanks to this repo:
 - pycson
   - This reduced alot of the load.
