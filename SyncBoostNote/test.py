@@ -296,6 +296,14 @@ $ tree
 
 
 def ultimate(config):
+    '''
+    Performs the followings:
+    - Creates history.json, if it doesn't exist
+    - If it does:
+        - reads it.
+        - updates the .md files, which require it.
+    -----------------------------------------------
+    '''
     if not os.path.isfile(os.path.join(config['BOOSTNOTE_PATH'], 'history.json')):
         # Create the History json again.
         create_history()
