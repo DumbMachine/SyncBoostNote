@@ -1,8 +1,14 @@
+from __future__ import print_function
+
 import json
 import os
 import platform
+import sys
+import time
 from glob import glob
+
 import cson
+
 from .test import git_update
 
 home = os.path.expanduser("~")
@@ -114,6 +120,8 @@ def ultimate(config):
         - updates the .md files, which require it.
     -----------------------------------------------
     '''
+    print("Searching for BOOSTNOTE_PATH", end='\r')
+    sys.stdout.flush()
     if not os.path.isfile(os.path.join(config['BOOSTNOTE_PATH'], 'history.json')):
 
         # Create the History json again.
@@ -121,7 +129,14 @@ def ultimate(config):
     if boostnote_exists(config['BOOSTNOTE_PATH']):
 
         # Creating History again, as this will track if new files have been added.
+        sys.stdout.flush()
+        print("Creating History.json file", end='\r')
+
         create_history(config['BOOSTNOTE_PATH'])
+
+        sys.stdout.flush()
+        print("Creation done!", end='\r')
+
         history_json = json.load(open(os.path.join(
             config['BOOSTNOTE_PATH'], 'history.json'), 'r'))
         for file in history_json.keys():
