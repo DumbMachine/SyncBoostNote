@@ -13,8 +13,10 @@ from glob import glob
 home = os.path.expanduser("~")
 
 
-def sync():
-    os.chdir(os.path.join(home, 'Boostnote'))
+def sync(
+    location=os.path.join(home, 'Boostnote')
+):
+    os.chdir(location)
     p = subprocess.Popen(
         "git status", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     # print(p.stdout.readlines()[1].strip())
