@@ -3,7 +3,9 @@
 import json
 import os
 import subprocess
+import time
 from collections import deque
+from datetime import datetime
 from glob import glob
 
 import cson
@@ -189,42 +191,34 @@ def update_changes():
     )
 
 
-def history():
-    '''
-    This method will keep track of the files saved and pushed to git.
-
-    '''
-    raise NotImplementedError
-
-
 def create_history():
     files = {}
     for note in get_notes():
         files[note.split('/')[-1]] = {
             'title': cson.load(open(note, 'r'))['title'],
-            'updated': True
+            'updated': False
         }
     json.dump(
         files,
-        open(os.path.join(BOOSTNOTE_SYNCNOTES_PATH, 'history.json'), 'w+')
+        open(os.path.join(BOOSTNOTE_PATH, 'history.json'), 'w+')
     )
 
 
 def ultimate(config):
-    if not os.path.isfile(os.path.join(config['BOOSTNOTE_PATH'], 'notes', 'syncboostnote', 'history.json')):
+    if not os.path.isfile(os.path.join(config['BOOSTNOTE_PATH'], 'history.json')):
         # Create the History json again.
         print(
             os.path.join(config['BOOSTNOTE_PATH'], 'notes',
                          'syncboostnote', 'history.json')
         )
-        raise FileNotFoundError("History.json Doesn't exist")
+        create_history()
     if boostnote_exists(config['BOOSTNOTE_PATH']):
         print()
         print('[PASSED] BOOSTNOTE_EXISTS ')
         if boostnote_notes_exist(os.path.join(config['BOOSTNOTE_PATH'], 'notes')):
             print('[PASSED] BOOSTNOTE_NOTES_EXISTS ')
             history_json = json.load(open(os.path.join(
-                BOOSTNOTE_SYNCNOTES_PATH, 'history.json'), 'r'))
+                BOOSTNOTE_PATH, 'history.json'), 'r'))
             for file in history_json.keys():
                 if not history_json[file]['updated']:
                     # If not updated, re render the file
@@ -252,3 +246,111 @@ ultimate({
     "FREQUENCY": "hourly",
     "TIME": 1200
 })
+
+
+# def timely_check(config):
+#     time_check = config['TIME']
+#     frequency = config['FREQUENCY']
+
+#     if frequency == 'onchange':
+#         raise NotImplementedError('This THING is not implemented currently')
+#     else:
+#         if datetime.now().hour == time_check:
+#             print("ITS HIGH NOON")
+#         else:
+#             time.sleep(2)
+#             print("Has the time come yet?")
+
+
+# # timely_check(
+# #     {
+# #         "BOOSTNOTE_PATH": os.path.join(home, 'Boostnote'),
+# #         "SHIELDS": True,
+# #         "SHIELDS_TYPE": "for-the-badge",
+# #         "FREQUENCY": "hourly",
+# #         "TIME": 11
+# #     }
+# # )
+
+
+# def watch_file(filename, time_limit=3600, check_interval=60):
+#     '''
+#     use get changes to see changes
+#     '''
+#     now = time.time()
+#     last_time = now + time_limit
+
+#     while time.time() <= last_time:
+#         if os.path.exists(filename):
+#             print('yes')
+#         else:
+#             # Wait for check interval seconds, then check again.
+#             time.sleep(check_interval)
+
+#     print('no')
+
+
+# def create_readme():
+#     raise NotImplementedError
+
+def create_readme(config):
+
+    notes = get_notes()
+    # data = {}
+    file = open(os.path.join(config['BOOSTNOTE_PATH'], 'README.md'), 'w+')
+    file.write(
+        '''# SnycBoostNotes
+### This repo consists of two directories:
+```bash
+$ tree
+.
+├── boostnote.json
+├── history.json
+└── notes
+    ├── ....cson
+    ├── ....cson
+    └── syncboostnote
+        ├── ....md
+        ├── ....md
+```
+- Directory `base`:
+  - boostnote.json ``Created by boostnote``
+  - history.json ``Created by SyncBoostnote``
+  - Directory `notes`:
+    - Raw `.cson` files used by BoostNote.
+    - Directory `syncboostnote`:
+      - `.md` files used display content on Github.
+
+# Index:
+## This following are the documents:
+
+        '''
+    )
+    for note in get_notes():
+        data = cson_reader(note)
+        # data[note.split("/")[-1]] = {
+        #     'title': cson_reader(note)['title'],
+        #     'createdAt': cson_reader(note)['createdAt'],
+        #     'tags': cson_reader(note)['tags'],
+        # }
+        # ! Generate Github link here
+        file.write(
+            f"- [{data['title']}](./notes/syncboostnote/{data['title']})")
+        file.write("\n")
+    # return data
+
+    awesome = 'https://img.shields.io/badge/made--with--%E2%99%A5--by-ProjectPy-blueviolet.svg'
+
+    file.write(
+        f"\n---\n<sub>This README was generated with ❤ by [SyncBoostnote](https://github.com/DumbMachine/SyncBoostNote) </sub>")
+
+
+create_readme(
+    {
+        "BOOSTNOTE_PATH": os.path.join(home, 'Boostnote'),
+        "SHIELDS": True,
+        "SHIELDS_TYPE": "for-the-badge",
+        "FREQUENCY": "hourly",
+        "TIME": 11
+    }
+)

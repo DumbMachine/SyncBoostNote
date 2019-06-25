@@ -6,4 +6,8 @@ TODOS:
 - [ ] MAke syncboostnotes directory.
 - [ ] Make Python Package.
 - [ ] Make this repo Pulic.
+- [ ] Generate README
+  - [ ] Sort the names by tag.
+  - [ ] Sort the names by date.
+  - [ ] sort the names by name (alphabetically)
 - [ ] Sick boi.
