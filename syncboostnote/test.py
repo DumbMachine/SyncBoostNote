@@ -2,6 +2,7 @@
 
 import json
 import os
+import platform
 import subprocess
 import time
 from collections import deque
@@ -10,7 +11,7 @@ from glob import glob
 
 import cson
 
-from config import git_commands
+from .config import git_commands
 
 home = os.path.expanduser("~")
 BOOSTNOTE_PATH = os.path.join(home, 'Boostnote')
@@ -152,18 +153,10 @@ def markdown_writer(things, location, shields=True,
             pass
 
 
-# for note in get_notes():
-#     markdown_writer(
-#         cson_reader(note),
-#         options={
-#             'style': 'for-the-badge',
-#             'option': 2
-#         }
-#     )
-# boostnote_exists()
-# boostnote_notes_exist()
-# cson_reader()
-# cson_reader()
+def git_update(message='nothing'):
+    os.system('git add -A')
+    os.system(f"git commit -m '{message}'")
+
 
 def get_changes():
     '''
@@ -197,6 +190,7 @@ def get_changes():
 
 
 def update_changes():
+    create_history()
     changed_files = get_changes()
     history_json = json.load(open(os.path.join(
         BOOSTNOTE_PATH, 'history.json'), 'r'))
@@ -204,11 +198,16 @@ def update_changes():
         if '.md' in file:
             # These files have been deleted or changed without telling us 😢😢😢
             # Thus we will re render them
+
             # 1. get the filename
             history_json = json.load(open(os.path.join(
                 BOOSTNOTE_PATH, 'history.json'), 'r'))
             for filename in history_json.keys():
+                print(file)
                 if history_json[filename]['title'] == file.replace('.md', ''):
+                    if file == 'SnycBoostNotes.md':
+                        continue
+
                     # 2. Rendering the missing files.
                     markdown_writer(
                         cson_reader(
@@ -221,9 +220,9 @@ def update_changes():
                             'option': 2
                         }
                     )
-            pass
         else:
             history_json[file]['updated'] = False
+    git_update(message='shit')
     json.dump(
         history_json,
         open(os.path.join(BOOSTNOTE_PATH, 'history.json'), 'w+')
@@ -308,7 +307,8 @@ def ultimate(config):
         # Create the History json again.
         create_history()
     if boostnote_exists(config['BOOSTNOTE_PATH']):
-        print()
+        # Creating History again, as this will track if new files have been added.
+        create_history()
         print('[PASSED] BOOSTNOTE_EXISTS ')
         if boostnote_notes_exist(os.path.join(config['BOOSTNOTE_PATH'], 'notes')):
             print('[PASSED] BOOSTNOTE_NOTES_EXISTS ')
@@ -353,29 +353,74 @@ ultimate({
 })
 
 
-# def timely_check(config):
-#     time_check = config['TIME']
-#     frequency = config['FREQUENCY']
+def timely_check(config):
+    time_check = config['TIME']
+    frequency = config['FREQUENCY']
 
-#     if frequency == 'onchange':
-#         raise NotImplementedError('This THING is not implemented currently')
-#     else:
-#         if datetime.now().hour == time_check:
-#             print("ITS HIGH NOON")
-#         else:
-#             time.sleep(2)
-#             print("Has the time come yet?")
+    if frequency == 'onchange':
+        raise NotImplementedError('This THING is not implemented currently')
+    else:
+        if datetime.now().hour == time_check:
+            print("ITS HIGH NOON")
+        else:
+            if datetime.now().hour > time_check:
+                time.sleep(
+                    (datetime.now().hour - time_check) * 360
+                )
+            elif datetime.now().hour < time_check:
+                time.sleep(
+                    (datetime.now().hour - time_check + 24) * 360
+                )
+            # time.sleep(2)
+            print("Has the time come yet?")
 
 
-# # timely_check(
-# #     {
-# #         "BOOSTNOTE_PATH": os.path.join(home, 'Boostnote'),
-# #         "SHIELDS": True,
-# #         "SHIELDS_TYPE": "for-the-badge",
-# #         "FREQUENCY": "hourly",
-# #         "TIME": 11
-# #     }
-# # )
+def time_check(frequency, thyme, config):
+    '''
+    Waits for the time and performs:
+    1. If user mentions time, then sleep time will be time + frequency
+    2. If user mention time, then sleep time will be 1200 hrs + frequency
+    '''
+    thyme = 12
+    while(1):
+
+        if frequency == 'onchange':
+            while(1):
+                if not get_changes():
+                    # Wait
+                    print(f'Waiting for {"2 seconds"}')
+                    time.sleep(2)
+                    # time, slep(10 * 60 * 60)
+                else:
+                    # change occured
+                    print("Calling update_changes")
+                    update_changes()
+                    print("Calling ultimate")
+                    ultimate(config)
+
+        if datetime.now().hour == thyme:
+            # check updates
+            print(gay)
+            pass
+        else:
+            print('shit', datetime.now())
+            if frequency == 'hourly':
+                time.sleep(1 * 360 / 100)
+            elif frequency == 'daily':
+                time.sleep(24 * 360 / 100)
+            elif frequency == 'weekly':
+                time.sleep(24 * 7 * 360 / 100)
+
+
+# time_check('onchange', '14',
+#            {
+#                "BOOSTNOTE_PATH": os.path.join(home, 'Boostnote'),
+#                "SHIELDS": True,
+#                "SHIELDS_TYPE": "for-the-badge",
+#                "FREQUENCY": "hourly",
+#                "TIME": 11
+#            }
+#            )
 
 
 # def watch_file(filename, time_limit=3600, check_interval=60):
@@ -397,3 +442,35 @@ ultimate({
 
 # def create_readme():
 #     raise NotImplementedError
+
+
+def create_home_dir(
+    location=os.path.join(home, 'Boostnote/notes/syncboostnote')
+):
+    """Create Directory for syncboostnotes."""
+    current_platform = platform.system().lower()
+    if current_platform != 'windows':
+        import pwd
+
+    # create the necessary directory structure for storing config details
+    # in the syncboostnote directory
+    required_dirs = [location]
+    for dir in required_dirs:
+        if not os.path.exists(dir):
+            try:
+                os.makedirs(dir)
+                if (current_platform != 'windows') and os.getenv("SUDO_USER"):
+                    # owner of .syncboostnote should be user even when installing
+                    # w/sudo
+                    pw = pwd.getpwnam(os.getenv("SUDO_USER"))
+                    os.chown(dir, pw.pw_uid, pw.pw_gid)
+            except OSError:
+                print("syncboostnotes lacks permission to "
+                      f"access the '{location}/notes/syncboostnotes' directory.")
+                raise
+
+        else:
+            print('directory is there.')
+
+
+create_home_dir()

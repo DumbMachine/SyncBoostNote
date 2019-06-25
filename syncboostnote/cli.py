@@ -10,8 +10,8 @@ import warnings
 
 from colorama import Fore, init
 
-from config import Config, interactive, config_reader
-from test import ultimate
+from .config import Config, interactive, config_reader
+from .test import ultimate
 
 init(autoreset=True)
 
