@@ -13,6 +13,7 @@
 - git
   - If not installed visit, [Git](https://git-scm.com/downloads)
 - python
+  - IF note installed visit, [Python](https://www.python.org/downloads/)
 - boostnote (also know where it is installed)
   - If not installed visit, [BoostNote](https://boostnote.io/#download)
 ## Installation:
