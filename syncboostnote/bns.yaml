@@ -1,5 +1,5 @@
 BOOSTNOTE_PATH: default # default: /home/$USER/Boostnote
-FREQUENCY: hourly # ["hourly", "daily", "weekly", "onchange", "manual"]
+FREQUENCY: manual # ["hourly", "daily", "weekly", "onchange", "manual"] Others will be implemented soon.
 SHIELDS: true
-SHIELDS_TYPE: for-the-badge # default: for-the-badge
-TIME: 1200
+SHIELDS_TYPE: for-the-badge # ['plastic' , 'flat', 'flat-square', 'for-the-badge', 'popout', 'popout-square', 'social']
+# TIME: 1200 Not recommended

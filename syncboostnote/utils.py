@@ -8,7 +8,7 @@ import time
 from glob import glob
 
 import cson
-
+import subprocess
 from .test import git_update
 
 home = os.path.expanduser("~")
@@ -21,7 +21,7 @@ def initialize(config):
     - Make directory for storing notes.
     - Create History
     # ! - Initialize the git repo.
-    ------------------------------------
+    -----------------s-------------------
     called:
         - Is called upon using  --initialize flag of the CLI
     '''
@@ -120,8 +120,8 @@ def ultimate(config):
         - updates the .md files, which require it.
     -----------------------------------------------
     '''
-    print("Searching for BOOSTNOTE_PATH", end='\r')
-    sys.stdout.flush()
+    # print("Searching for BOOSTNOTE_PATH", end='\r')
+    # sys.stdout.flush()
     if not os.path.isfile(os.path.join(config['BOOSTNOTE_PATH'], 'history.json')):
 
         # Create the History json again.
@@ -129,13 +129,13 @@ def ultimate(config):
     if boostnote_exists(config['BOOSTNOTE_PATH']):
 
         # Creating History again, as this will track if new files have been added.
-        sys.stdout.flush()
-        print("Creating History.json file", end='\r')
+        # sys.stdout.flush()
+        # print("Creating History.json file", end='\r')
 
         create_history(config['BOOSTNOTE_PATH'])
 
-        sys.stdout.flush()
-        print("Creation done!", end='\r')
+        # sys.stdout.flush()
+        # print("Creation done!", end='\r')
 
         history_json = json.load(open(os.path.join(
             config['BOOSTNOTE_PATH'], 'history.json'), 'r'))
@@ -175,7 +175,8 @@ def cson_reader(location):
         data = cson.load(open(location, 'r'))
         return data
     else:
-        raise FileNotFoundError(f'The cson file at {location} was not found')
+        return 0
+        # raise FileNotFoundError(f'The cson file at {location} was not found')
 
 
 def customshield(
@@ -210,67 +211,67 @@ def markdown_writer(things, location, shields=True,
         The dict{} which contains shit that was read via the cson
 
     '''
-
-    embels = ['isStarred', 'isTrashed',
-              'updatedAt', 'type', 'folder', 'tags']
-    shelds = []
-    if shields:
-        for key in embels:
-            x = None
-            if things[key]:
-                if key == 'isStarred':
-                    shelds.append(customshield(
-                        key, '⭐', color='black', style=options['style']))
-
-                if key == 'isTrashed':
-                    shelds.append(customshield(
-                        key, '🗑', color='black', style=options['style']))
-
-                elif key == 'updatedAt':
-                    shelds.append(customshield(
-                        key, things[key].split(':')[0][:-3].replace('-', '/'), color='green', style=options['style']))
-
-                elif key in ['type', 'folder']:
-                    shelds.append(customshield(
-                        key, things[key], color='blue', style=options['style']))
-
-                elif key == 'tags':
-                    if options['option']:
-                        # OPTION 1: {tag| gay} {tag| notgay}
-                        for tag in things[key]:
-                            shelds.append(
-                                customshield(label='tag', message=tag,
-                                             color='purple', style=options['style'])
-                            )
-                    else:
-                        # OPTION 2: {tag| gay, notgay}
-                        tags = []
-                        for tag in things[key]:
-                            tags.append(tag)
+    if things:
+        embels = ['isStarred', 'isTrashed',
+                  'updatedAt', 'type', 'folder', 'tags']
+        shelds = []
+        if shields:
+            for key in embels:
+                x = None
+                if things[key]:
+                    if key == 'isStarred':
                         shelds.append(customshield(
-                            label='tags', message='_'.join(tags), color='blueviolet', style=options['style']))
+                            key, '⭐', color='black', style=options['style']))
 
-        file = open(os.path.join(location,
-                                 f"{things['title']}.md"), 'w+')
+                    if key == 'isTrashed':
+                        shelds.append(customshield(
+                            key, '🗑', color='black', style=options['style']))
 
-        for count, shield in enumerate(shelds):
-            if count != len(shelds) - 1:
-                file.write(shield)
-                file.write(' ')
-            else:
-                file.write(shield)
-                file.write('\n')
+                    elif key == 'updatedAt':
+                        shelds.append(customshield(
+                            key, things[key].split(':')[0][:-3].replace('-', '/'), color='green', style=options['style']))
 
-        try:
-            file.write(things['content'])
+                    elif key in ['type', 'folder']:
+                        shelds.append(customshield(
+                            key, things[key], color='blue', style=options['style']))
 
-        except:
-            pass
-        try:
-            file.write(things['snippets'])
+                    elif key == 'tags':
+                        if options['option']:
+                            # OPTION 1: {tag| gay} {tag| notgay}
+                            for tag in things[key]:
+                                shelds.append(
+                                    customshield(label='tag', message=tag,
+                                                 color='purple', style=options['style'])
+                                )
+                        else:
+                            # OPTION 2: {tag| gay, notgay}
+                            tags = []
+                            for tag in things[key]:
+                                tags.append(tag)
+                            shelds.append(customshield(
+                                label='tags', message='_'.join(tags), color='blueviolet', style=options['style']))
 
-        except:
-            pass
+            file = open(os.path.join(location,
+                                     f"{things['title']}.md"), 'w+')
+
+            for count, shield in enumerate(shelds):
+                if count != len(shelds) - 1:
+                    file.write(shield)
+                    file.write(' ')
+                else:
+                    file.write(shield)
+                    file.write('\n')
+
+            try:
+                file.write(things['content'])
+
+            except:
+                pass
+            try:
+                file.write(things['snippets'])
+
+            except:
+                pass
 
 
 def get_changes(
@@ -289,7 +290,7 @@ def get_changes(
     files = []
     os.chdir(location)
     p = subprocess.Popen(
-        git_commands.status, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        "git status", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     for line in p.stdout.readlines():
         # Putting checks to see if any rendered file is deleted.
         if '.md' in line.decode("utf-8"):
@@ -309,7 +310,7 @@ def get_changes(
 def update_changes(
     location=os.path.join(home, 'Boostnote')
 ):
-    create_history(location)
+    # create_history(location)
     changed_files = get_changes()
     history_json = json.load(open(os.path.join(
         location, 'history.json'), 'r'))
@@ -352,16 +353,25 @@ def update_changes(
 def create_history(
     location=os.path.join(home, 'Boostnote')
 ):
-    files = {}
-    for note in get_notes():
-        files[note.split('/')[-1]] = {
-            'title': cson.load(open(note, 'r'))['title'],
-            'updated': False
-        }
-    json.dump(
-        files,
-        open(os.path.join(location, 'history.json'), 'w+')
-    )
+    if os.path.isfile(
+        os.path.join(location, 'history.json')
+    ):
+        # FIle already exists, check for changes.
+        update_changes()
+        print(1)
+
+    else:
+        print(3)
+        files = {}
+        for note in get_notes():
+            files[note.split('/')[-1]] = {
+                'title': cson.load(open(note, 'r'))['title'],
+                'updated': False
+            }
+        json.dump(
+            files,
+            open(os.path.join(location, 'history.json'), 'w+')
+        )
 
 
 def create_readme(config):

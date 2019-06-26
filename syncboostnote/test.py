@@ -24,11 +24,18 @@ def sync(
         os.system("git push origin master")
     else:
         print("Adding all the things")
-        os.system("git add -A")
+        p = subprocess.Popen(
+            "git add -A", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
         # print("Commiting all the things")
-        os.system("git commit -m '.'")
+        p1 = subprocess.Popen(
+            f"git commit -m '{datetime.now()}'", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        for line in p1.stdout.readlines()[2:]:
+            print(line.decode("utf-8"))
+
         # print("Pushing all the things")
-        os.system("git push origin master")
+        p2 = subprocess.Popen(
+            "git push origin master", shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     retval = p.wait()
 

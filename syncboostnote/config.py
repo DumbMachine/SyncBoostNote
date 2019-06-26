@@ -58,14 +58,15 @@ def input_with_prefill(prompt, text):
     return result
 
 
-def create_config(location='.'):
+def generate_config():
     '''
     Creates a default config for users to see.
     '''
-    yaml.dump(
-        Config,
-        open(os.path.join(location, 'bns.yaml'), 'w+')
-    )
-
-
-# create_config()
+    open(
+        'config.yaml', 'w+'
+    ).write('''BOOSTNOTE_PATH: default # default: /home/$USER/Boostnote
+FREQUENCY: manual # ["hourly", "daily", "weekly", "onchange", "manual"] Others will be implemented soon.
+SHIELDS: true
+SHIELDS_TYPE: for-the-badge # ['plastic' , 'flat', 'flat-square', 'for-the-badge', 'popout', 'popout-square', 'social']
+# TIME: 1200 Not recommended
+''')

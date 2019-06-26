@@ -11,7 +11,7 @@ import time
 import yaml
 from colorama import Fore, init
 
-from .config import Config, config_reader, interactive
+from .config import Config, config_reader, interactive, generate_config
 from .utils import initialize
 from .test import sync
 
@@ -41,12 +41,12 @@ def options():
         help="Location of the BoostNotes local storage.",
         default=os.path.join(home, 'Boostnote'))
 
-    ap.add_argument(
-        "-ini",
-        "--init",
-        required=False,
-        help="Initialise the CLI",
-        default=False)
+    # ap.add_argument(
+    #     "-ini",
+    #     "--init",
+    #     required=False,
+    #     help="Initialise the CLI",
+    #     default=False)
 
     ap.add_argument(
         "--sync",
@@ -55,8 +55,8 @@ def options():
     )
 
     ap.add_argument(
-        "-cus",
-        "--custom",
+        "-co",
+        "--config",
         required=False,
         help="Location of the config.yaml/config.yml file",
         default=False)
@@ -64,9 +64,9 @@ def options():
     ap.add_argument(
         "-g",
         "--generate",
-        required=False,
         help="Generate config.yaml file for ya",
-        default=False)
+        action='store_true'
+    )
 
     ap.add_argument(
         "-i",
@@ -85,8 +85,10 @@ def starter(args):
     '''
     if args['sync']:
         sync()
+    elif args['generate']:
+        return generate_config()
+
     elif args['interactive']:
-        print('>>> Interactive <<<')
         return interactive()
 
     elif args['location']:
