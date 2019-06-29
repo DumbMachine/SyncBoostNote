@@ -85,6 +85,7 @@ def starter(args):
     '''
     if args['sync']:
         sync()
+
     elif args['generate']:
         return generate_config()
 
@@ -120,17 +121,3 @@ def run_as_command():
 
 
 run_as_command()
-
-
-# print(
-#     '''
-# _________________________________
-# |                                |
-# | Generation was successful      |
-# | Below is the generated config: |
-# | -------------------------      |
-# | $ cd repo_name                 |
-# | $ python setup.py install      |
-# ------------------------------
-# '''
-# )

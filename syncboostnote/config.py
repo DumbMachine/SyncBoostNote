@@ -29,7 +29,6 @@ def interactive():
         ['BOOSTNOTE_PATH: ', ' ~/BoostNotes', 'BOOSTNOTE_PATH'],
         ['SHIELDS: ', ' True', 'SHIELDS'],
         ['SHIELDS_TYPE: ', 'for-the-badge', 'SHIELDS_TYPE'],
-        # ["hourly", "daily", "weekly", "monthly", "onchange"]
         ['FREQUENCY: ', 'hourly', 'FREQUENCY'],
         ['TIME: ', '1200', 'TIME'],  # 24 gour format for now
 

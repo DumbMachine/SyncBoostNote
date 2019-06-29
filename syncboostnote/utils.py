@@ -35,6 +35,7 @@ def initialize(config):
             location=os.path.join(BOOSTNOTE_NOTES, 'syncboostnote')
         )
         create_history(BOOSTNOTE_PATH)
+        # update_changes()
         ultimate(config)
     else:
         raise NotADirectoryError(
@@ -120,8 +121,6 @@ def ultimate(config):
         - updates the .md files, which require it.
     -----------------------------------------------
     '''
-    # print("Searching for BOOSTNOTE_PATH", end='\r')
-    # sys.stdout.flush()
     if not os.path.isfile(os.path.join(config['BOOSTNOTE_PATH'], 'history.json')):
 
         # Create the History json again.
@@ -129,13 +128,8 @@ def ultimate(config):
     if boostnote_exists(config['BOOSTNOTE_PATH']):
 
         # Creating History again, as this will track if new files have been added.
-        # sys.stdout.flush()
-        # print("Creating History.json file", end='\r')
 
         create_history(config['BOOSTNOTE_PATH'])
-
-        # sys.stdout.flush()
-        # print("Creation done!", end='\r')
 
         history_json = json.load(open(os.path.join(
             config['BOOSTNOTE_PATH'], 'history.json'), 'r'))
@@ -176,7 +170,6 @@ def cson_reader(location):
         return data
     else:
         return 0
-        # raise FileNotFoundError(f'The cson file at {location} was not found')
 
 
 def customshield(
@@ -212,7 +205,7 @@ def markdown_writer(things, location, shields=True,
 
     '''
     if things:
-        embels = ['isStarred', 'isTrashed',
+        embels = ['isStarred', 'isTrashed', 'createdAt',
                   'updatedAt', 'type', 'folder', 'tags']
         shelds = []
         if shields:
@@ -228,8 +221,16 @@ def markdown_writer(things, location, shields=True,
                             key, '🗑', color='black', style=options['style']))
 
                     elif key == 'updatedAt':
+                        year, month, day = things[key].split(
+                            ':')[0][:-3].split('-')   # 2019/06/29
                         shelds.append(customshield(
-                            key, things[key].split(':')[0][:-3].replace('-', '/'), color='green', style=options['style']))
+                            "UpdatedAt".replace(" ", "%20"), f"{day}%20{month}%20{year}", color='green', style=options['style']))
+
+                    elif key == 'createdAt':
+                        year, month, day = things[key].split(
+                            ':')[0][:-3].split('-')   # 2019/06/29
+                        shelds.append(customshield(
+                            "createdAt".replace(" ", "%20"), f"{day}%20{month}%20{year}", color='green', style=options['style']))
 
                     elif key in ['type', 'folder']:
                         shelds.append(customshield(
@@ -353,31 +354,21 @@ def update_changes(
 def create_history(
     location=os.path.join(home, 'Boostnote')
 ):
-    if os.path.isfile(
-        os.path.join(location, 'history.json')
-    ):
-        # FIle already exists, check for changes.
-        update_changes()
-        print(1)
-
-    else:
-        print(3)
-        files = {}
-        for note in get_notes():
-            files[note.split('/')[-1]] = {
-                'title': cson.load(open(note, 'r'))['title'],
-                'updated': False
-            }
-        json.dump(
-            files,
-            open(os.path.join(location, 'history.json'), 'w+')
-        )
+    files = {}
+    for note in get_notes():
+        files[note.split('/')[-1]] = {
+            'title': cson.load(open(note, 'r'))['title'],
+            'updated': False
+        }
+    json.dump(
+        files,
+        open(os.path.join(location, 'history.json'), 'w+')
+    )
 
 
 def create_readme(config):
 
     notes = get_notes()
-    # data = {}
     file = open(os.path.join(config['BOOSTNOTE_PATH'], 'README.md'), 'w+')
     file.write(
         '''# SnycBoostNotes
@@ -408,17 +399,14 @@ $ tree
     )
     for note in get_notes():
         data = cson_reader(note)
-        # data[note.split("/")[-1]] = {
-        #     'title': cson_reader(note)['title'],
-        #     'createdAt': cson_reader(note)['createdAt'],
-        #     'tags': cson_reader(note)['tags'],
-        # }
         # ! Generate Github link here
         file.write(
             # https://github.com/DumbMachine/SyncBoostNoteExample/blob/master/notes/syncboostnote/Stolen%20Content.md
             f"- [{data['title']}](https://github.com/DumbMachine/{repo_name()}/blob/master/notes/syncboostnote/{data['title'].replace(' ','%20')}.md)")
+        if data['tags']:
+            file.write(" {}".format(customshield(
+                label='tags', message="%20,%20".join(data['tags']), color='purple')))
         file.write("\n")
-    # return data
 
     awesome = 'https://img.shields.io/badge/made--with--%E2%99%A5--by-ProjectPy-blueviolet.svg'
 

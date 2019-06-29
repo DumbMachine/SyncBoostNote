@@ -1,7 +1,0 @@
-BOOSTNOTE_PATH: ~/BoostNotes
-
-SHIELDS: True
-SHIELDS_TYPE: "for-the-badge"
-
-FREQUENCY: hourly # ["hourly", "daily", "weekly", "onchange"]
-TIME: 12 # 24 Hour format for now

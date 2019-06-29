@@ -115,15 +115,11 @@ Everything up-to-date
 ```
 ![image](https://user-images.githubusercontent.com/23381512/60123229-9a42a380-97a4-11e9-9da0-e38b4460933d.png)
 
+## Example of Repository Generated can be found [here](https://github.com/DumbMachine/SyncBoostNoteExample).
 
 TODOS:
-- [ ] Sorting tags:
-  - [ ] Sort the names by tag.
-  - [ ] Sort the names by date.
-  - [ ] sort the names by name (alphabetically)
-- [ ] Delete ``*.md`` file ``*.cson`` has been deleted.
-- [ ] Brings in oops.
-- [ ] 😢😢😢 Anything other than ``INTERACTIVE`` is executed twice, dunno why pliz halp.
+- [ ] Order Shields inline, ( Dates in one line, tags in one, folder specific in one )
+
 ## Thanks to this repo:
 - [pycson](https://github.com/avakar/pycson)
   - This helped in saving me alot of time.
